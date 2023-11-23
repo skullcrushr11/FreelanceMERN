@@ -1,135 +1,48 @@
-// HireComponent.js
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import './HireComponent.css';
 
 const HireComponent = () => {
-  // Sample hardcoded freelancer data
-  const [freelancers, setFreelancers] = useState([
-    {
-        fullName: "John Doe",
-        occupation: "Developer",
-        skills: "HTML, CSS, JavaScript",
-        profileImage: "https://source.unsplash.com/random/200x200?sig=incrementingIdentifier",
-        description: "Experienced web developer",
-        languagesKnown: "English, Spanish"
-    },
-    {
-        fullName: "Jane Smith",
-        occupation: "Graphic Designer",
-        skills: "Adobe Photoshop, Illustrator",
-        profileImage: "https://source.unsplash.com/random/200x200?sig=incrementingIdentifier",
-        description: "Creative graphic designer with a passion for visual storytelling",
-        languagesKnown: "English, French"
-    },
-    {
-        fullName: "Alex Johnson",
-        occupation: "Writer",
-        skills: "Content creation, Copywriting",
-        profileImage: "https://source.unsplash.com/random/200x200?sig=incrementingIdentifier",
-        description: "Versatile writer with a flair for words",
-        languagesKnown: "English, German"
-    },
-    {
-        fullName: "Emily Brown",
-        occupation: "Social Media Manager",
-        skills: "Social media strategy, Content scheduling",
-        profileImage: "https://source.unsplash.com/random/200x200?sig=incrementingIdentifier",
-        description: "Expert in managing social media presence",
-        languagesKnown: "English, Spanish"
-    },
-    {
-        fullName: "Michael Chen",
-        occupation: "Data Scientist",
-        skills: "Python, Machine Learning",
-        profileImage: "https://source.unsplash.com/random/200x200?sig=incrementingIdentifier",
-        description: "Analytical thinker leveraging data to drive insights",
-        languagesKnown: "English, Mandarin"
-    },
-    {
-        fullName: "Ava Rodriguez",
-        occupation: "Marketing Specialist",
-        skills: "Digital marketing, SEO",
-        profileImage: "https://source.unsplash.com/random/200x200?sig=incrementingIdentifier",
-        description: "Strategic marketer driving online visibility",
-        languagesKnown: "English, Spanish"
-    },
-    {
-        fullName: "Oliver Kim",
-        occupation: "Photographer",
-        skills: "Portrait photography, Photo editing",
-        profileImage: "https://source.unsplash.com/random/200x200?sig=incrementingIdentifier",
-        description: "Capturing moments through the lens",
-        languagesKnown: "English, Korean"
-    },
-    {
-        fullName: "Sophie White",
-        occupation: "UX/UI Designer",
-        skills: "Wireframing, Prototyping",
-        profileImage: "https://source.unsplash.com/random/200x200?sig=incrementingIdentifier",
-        description: "Creating seamless user experiences with a touch of creativity",
-        languagesKnown: "English, French"
-    },
-    {
-        fullName: "William Taylor",
-        occupation: "Video Editor",
-        skills: "Video editing, Motion graphics",
-        profileImage: "https://source.unsplash.com/random/200x200?sig=incrementingIdentifier",
-        description: "Crafting compelling visual stories through video",
-        languagesKnown: "English, Spanish"
-    }
-  ]);
+  const [freelancers, setFreelancers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [expandedFreelancerId, setExpandedFreelancerId] = useState(null);
 
-  const filterFreelancers = () => {
-    // Implement your filtering logic here
-    const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
-    const filteredFreelancers = freelancers.filter((freelancer) =>
-      freelancer.fullName.toLowerCase().includes(searchTerm) ||
-      freelancer.occupation.toLowerCase().includes(searchTerm)
-    );
-    displayFreelancerCards(filteredFreelancers);
-  };
-
-  const displayFreelancerCards = (freelancersToDisplay) => {
-    const freelancerContainer = document.getElementById("freelancerContainer");
-    freelancerContainer.innerHTML = "";
-
-    freelancersToDisplay.forEach((freelancer) => {
-      const card = document.createElement("div");
-      card.classList.add("freelancer-card");
-
-      card.innerHTML = `
-          <img src="${freelancer.profileImage}" alt="${freelancer.fullName}">
-          <h2>${freelancer.fullName}</h2>
-          <p>${freelancer.occupation}</p>
-          <p>${freelancer.skills}</p>
-          <button class="view-profile-btn" onclick="viewProfile('${freelancer.fullName}')">View Profile</button>
-      `;
-
-      freelancerContainer.appendChild(card);
-    });
-  };
-
-  const viewProfile = (fullName) => {
-    // Implement viewing profile logic here
-    console.log(`Viewing profile for ${fullName}`);
-  };
 
   useEffect(() => {
-    // Add event listeners when the component mounts
-    const searchInput = document.getElementById("searchInput");
-    searchInput.addEventListener("input", filterFreelancers);
-    searchInput.addEventListener("change", filterFreelancers);
+    // Fetch freelancers from the server when the component mounts
+    fetchFreelancers();
+  }, []); // Empty dependency array means this effect runs once after the initial render
 
-    // Display the initial set of freelancer cards
-    displayFreelancerCards(freelancers);
+  const fetchFreelancers = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/freelancers');
+      const data = await response.json();
+      setFreelancers(data);
+      setLoading(false); // Set loading to false once data is fetched
+    } catch (error) {
+      console.error('Error fetching freelancers:', error);
+      setLoading(false); // Set loading to false in case of an error
+    }
+  };
 
-    // Remove event listeners when the component unmounts
-    return () => {
-      searchInput.removeEventListener("input", filterFreelancers);
-      searchInput.removeEventListener("change", filterFreelancers);
-    };
-  }, [freelancers]);
+  const handleSearchInputChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const toggleExpand = (freelancerId) => {
+    setExpandedFreelancerId(expandedFreelancerId === freelancerId ? null : freelancerId);
+  };
+
+  const isExpanded = (freelancerId) => {
+    return expandedFreelancerId === freelancerId;
+  };
+
+  const filteredFreelancers = freelancers.filter(
+    (freelancer) =>
+      freelancer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      freelancer.occupation.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
@@ -145,11 +58,54 @@ const HireComponent = () => {
       </section>
 
       <section className="freelancer-search">
-        <input type="text" id="searchInput" placeholder="Search by name or occupation" />
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search by name or occupation"
+          value={searchTerm}
+          onChange={handleSearchInputChange}
+        />
       </section>
 
-      <section className="freelancer-container" id="freelancerContainer">
-        {/* Display freelancer cards here */}
+      <section className="freelancer-container">
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          filteredFreelancers.map((freelancer) => (
+            <div key={freelancer._id} className={`freelancer-card ${isExpanded(freelancer._id) ? 'expanded' : ''}`}>
+              <img src={(freelancer.profileImage)} alt={freelancer.fullName} />
+              <h2>{freelancer.fullName}</h2>
+              <p>{freelancer.occupation}</p>
+              <p>{freelancer.skills}</p>
+
+              {isExpanded(freelancer._id) ? (
+                <div>
+                  <p>Email: {freelancer.email}</p>
+                  <p>Description: {freelancer.description}</p>
+                  <p>Languages Known: {freelancer.languagesKnown}</p>
+                  <p>Language Level: {freelancer.languageLevel}</p>
+                </div>
+              ) : null}
+
+<button
+  onClick={() => toggleExpand(freelancer._id)}
+  style={{
+    backgroundColor: '#3498db',
+    color: '#fff',
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s',
+    marginTop: '10px',
+    fontSize: '14px',
+  }}
+>
+  {isExpanded(freelancer._id) ? 'Collapse' : 'Expand'}
+</button>
+            </div>
+          ))
+        )}
       </section>
     </div>
   );
